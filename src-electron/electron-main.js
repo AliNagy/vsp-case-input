@@ -4,7 +4,10 @@ import os from 'node:os'
 import fs from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
-import { autoUpdater } from 'electron-updater'
+import pkg from 'electron-updater'
+const { autoUpdater } = pkg
+
+autoUpdater.autoDownload = false
 
 import Store from 'electron-store'
 
@@ -42,6 +45,7 @@ function createWindow() {
   })
 
   if (process.env.DEV) {
+    autoUpdater.forceDevUpdateConfig = true
     mainWindow.loadURL(process.env.APP_URL)
   } else {
     mainWindow.loadFile('index.html')
@@ -61,9 +65,50 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+
+  ipcMain.on('check-for-update', () => {
+    autoUpdater.checkForUpdatesAndNotify()
+  })
+
+  ipcMain.on('apply-update', () => {
+    autoUpdater.quitAndInstall()
+  })
+
+  ipcMain.on('download-update', () => {
+    autoUpdater.downloadUpdate()
+  })
+
+  autoUpdater.on('update-available', (updateInfo) => {
+    mainWindow.webContents.send('check-for-update', {
+      type: 'update-available',
+      data: updateInfo,
+    })
+  })
+  autoUpdater.on('update-not-available', () => {
+    mainWindow.webContents.send('check-for-update', {
+      type: 'update-not-available',
+    })
+  })
+  autoUpdater.on('checking-for-update', () => {
+    mainWindow.webContents.send('check-for-update', {
+      type: 'checking-for-update',
+    })
+  })
+  autoUpdater.on('download-progress', (progressInfo) => {
+    mainWindow.webContents.send('check-for-update', {
+      type: 'download-progress',
+      data: progressInfo,
+    })
+  })
+  autoUpdater.on('update-downloaded', () => {
+    mainWindow.webContents.send('check-for-update', {
+      type: 'update-downloaded',
+    })
+  })
 }
 
 app.whenReady().then(() => {
+  ipcMain.handle('get-version', async () => autoUpdater.currentVersion)
   ipcMain.handle('store-get-value', (event, key) => {
     return store.get(key)
   })
@@ -108,6 +153,7 @@ app.whenReady().then(() => {
   ipcMain.on('store-set-value', (event, key, value) => {
     store.set(key, value)
   })
+
   createWindow()
 })
 
@@ -122,14 +168,3 @@ app.on('activate', () => {
     createWindow()
   }
 })
-
-if (!process.env.DEV) {
-  autoUpdater.on('update-available', () => {
-    console.log('Update available.')
-  })
-
-  autoUpdater.on('update-downloaded', () => {
-    console.log('Update downloaded.')
-    autoUpdater.quitAndInstall()
-  })
-}

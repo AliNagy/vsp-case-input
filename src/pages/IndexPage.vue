@@ -1,5 +1,12 @@
 <template>
   <q-page padding>
+    <q-btn
+      label="Check for Updates"
+      color="primary"
+      class="q-mb-md"
+      @click="checkForUpdates"
+      :loading="checkingForUpdateLoader"
+    />
     <q-card flat bordered>
       <q-form @submit="createFolders">
         <q-card-section>
@@ -138,6 +145,7 @@
         </q-card-section>
         <q-card-section>
           <q-btn label="Create Directory" color="primary" type="submit" />
+          <q-btn label="Clear" color="primary" flat @click="clearFolderConfig" />
         </q-card-section>
       </q-form>
     </q-card>
@@ -157,6 +165,12 @@ const folderConfig = ref({
   patient: null,
   folder: '',
 })
+
+const clearFolderConfig = () => {
+  folderConfig.value.procedure = null
+  folderConfig.value.doctor = null
+  folderConfig.value.patient = null
+}
 
 const newFolder = ref(null)
 
@@ -352,4 +366,81 @@ const preview = computed(
   () =>
     `${folderConfig.value.procedure ?? 'Unassigned'} - ${folderConfig.value.doctor ?? 'Unassigned'} - ${folderConfig.value.patient ?? 'Unassigned'}`,
 )
+
+const currentVersion = ref(null)
+
+const getVersion = async () => {
+  currentVersion.value = await window.updater.getVersion()
+}
+const checkForUpdates = () => {
+  window.updater.checkForUpdates()
+}
+
+const checkingForUpdateLoader = ref(false)
+const downloadUpdateLoaderProgress = ref(0)
+
+const onUpdateListener = () => {
+  window.updater.listenForUpdates((data) => {
+    console.log(data)
+    switch (data.type) {
+      case 'update-downloaded': {
+        checkingForUpdateLoader.value = false
+        notify({
+          message: 'Update downloaded.',
+          type: 'positive',
+          timeout: 0,
+          actions: [
+            {
+              label: 'Restart',
+              color: 'white',
+              handler: () => window.updater.applyUpdate(),
+            },
+            {
+              label: 'Dismiss',
+              color: 'white',
+            },
+          ],
+        })
+        break
+      }
+      case 'download-progress': {
+        downloadUpdateLoaderProgress.value = data.data.percent
+        break
+      }
+      case 'checking-for-update': {
+        checkingForUpdateLoader.value = true
+        break
+      }
+      case 'update-not-available': {
+        checkingForUpdateLoader.value = false
+        break
+      }
+      case 'update-available': {
+        checkingForUpdateLoader.value = false
+        notify({
+          message: 'Update found.',
+          type: 'info',
+          closeBtn: true,
+          timeout: 0,
+          actions: [
+            {
+              label: 'Download',
+              color: 'white',
+              handler: () => window.updater.downloadUpdate(),
+            },
+            {
+              label: 'Dismiss',
+              color: 'white',
+            },
+          ],
+        })
+        break
+      }
+    }
+  })
+}
+
+getVersion()
+checkForUpdates()
+onUpdateListener()
 </script>

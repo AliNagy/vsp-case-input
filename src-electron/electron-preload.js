@@ -10,6 +10,15 @@ contextBridge.exposeInMainWorld('fileSystem', {
   createFolders: (directory, folder, subfolders) =>
     ipcRenderer.invoke('create-folders', directory, folder, subfolders),
 })
+
+contextBridge.exposeInMainWorld('updater', {
+  checkForUpdates: () => ipcRenderer.send('check-for-update'),
+  listenForUpdates: (callback) =>
+    ipcRenderer.on('check-for-update', (_event, data) => callback(data)),
+  applyUpdate: () => ipcRenderer.send('apply-update'),
+  downloadUpdate: () => ipcRenderer.send('download-update'),
+  getVersion: () => ipcRenderer.invoke('get-version'),
+})
 /**
  * This file is used specifically for security reasons.
  * Here you can access Nodejs stuff and inject functionality into
