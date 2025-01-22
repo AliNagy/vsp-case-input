@@ -4,6 +4,8 @@ import os from 'node:os'
 import fs from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 
+import { autoUpdater } from 'electron-updater'
+
 import Store from 'electron-store'
 
 const store = new Store()
@@ -43,6 +45,7 @@ function createWindow() {
     mainWindow.loadURL(process.env.APP_URL)
   } else {
     mainWindow.loadFile('index.html')
+    autoUpdater.checkForUpdatesAndNotify()
   }
 
   if (process.env.DEBUGGING) {
@@ -119,3 +122,14 @@ app.on('activate', () => {
     createWindow()
   }
 })
+
+if (!process.env.DEV) {
+  autoUpdater.on('update-available', () => {
+    console.log('Update available.')
+  })
+
+  autoUpdater.on('update-downloaded', () => {
+    console.log('Update downloaded.')
+    autoUpdater.quitAndInstall()
+  })
+}

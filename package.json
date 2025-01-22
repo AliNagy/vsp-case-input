@@ -1,6 +1,6 @@
 {
   "name": "dentistry-tool",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "VSP Case Input",
   "productName": "VSP Case Input",
   "author": "Ali Nagy <alinagy50@gmail.com>",
@@ -17,6 +17,7 @@
   "dependencies": {
     "@quasar/extras": "^1.16.4",
     "electron-store": "^10.0.0",
+    "electron-updater": "^6.3.9",
     "quasar": "^2.16.0",
     "vue": "^3.4.18",
     "vue-router": "^4.0.0"

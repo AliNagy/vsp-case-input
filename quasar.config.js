@@ -188,6 +188,14 @@ export default defineConfig((/* ctx */) => {
         // https://www.electron.build/configuration/configuration
 
         appId: 'dentistry-tool',
+        win: {
+          target: 'nsis',
+        },
+        publish: {
+          provider: 'github',
+          owner: 'AliNagy',
+          repo: 'vsp-case-input',
+        },
       },
     },
 
