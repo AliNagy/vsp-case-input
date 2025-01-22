@@ -135,10 +135,12 @@
           <q-btn @click="selectFolder" icon="folder" color="primary" padding="16px" />
         </q-card-section>
         <q-card-section v-if="newFolder">
-          <q-banner class="bg-positive text-white" rounded inline-actions>
+          <q-banner class="bg-positive text-white" rounded>
             {{ newFolder }}
             <template v-slot:action>
-              <q-btn @click="copyFolderUrl" flat color="white" label="Copy" />
+              <q-btn @click="openFolder" flat color="white" label="Open Folder" />
+              <q-btn @click="copyFolderUrl" flat color="white" label="Copy Folder Path" />
+              <q-btn @click="copyFolderName" flat color="white" label="Copy Folder Name" />
               <q-btn @click="newFolder = null" flat color="white" label="Dismiss" />
             </template>
           </q-banner>
@@ -174,11 +176,21 @@ const clearFolderConfig = () => {
 
 const newFolder = ref(null)
 
+const openFolder = () => {
+  window.fileSystem.openFolder(newFolder.value)
+}
 const copyFolderUrl = async () => {
   await copyToClipboard(newFolder.value)
   notify({
     type: 'positive',
     message: 'Folder path copied.',
+  })
+}
+const copyFolderName = async () => {
+  await copyToClipboard(newFolder.value.split('\\').pop())
+  notify({
+    type: 'positive',
+    message: 'Folder name copied.',
   })
 }
 

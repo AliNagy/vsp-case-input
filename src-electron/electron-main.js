@@ -1,4 +1,4 @@
-import { app, dialog, ipcMain, BrowserWindow } from 'electron'
+import { shell, app, dialog, ipcMain, BrowserWindow } from 'electron'
 import path from 'node:path'
 import os from 'node:os'
 import fs from 'node:fs/promises'
@@ -64,6 +64,10 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null
+  })
+
+  ipcMain.on('open-folder', (event, folderPath) => {
+    shell.openPath(folderPath)
   })
 
   ipcMain.on('check-for-update', () => {

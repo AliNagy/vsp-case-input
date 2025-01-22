@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('fileSystem', {
   selectDirectory: () => ipcRenderer.invoke('select-directory'),
   createFolders: (directory, folder, subfolders) =>
     ipcRenderer.invoke('create-folders', directory, folder, subfolders),
+  openFolder: (folderPath) => ipcRenderer.send('open-folder', folderPath),
 })
 
 contextBridge.exposeInMainWorld('updater', {
